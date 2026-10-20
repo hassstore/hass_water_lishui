@@ -1,0 +1,8 @@
+{
+  "name": "Lishui Water Fee",
+  "homeassistant": "2024.12.0",
+  "zip_release": true,
+  "filename": "hass_water_lishui.zip",
+  "render_readme": true,
+  "country": "CN"
+}

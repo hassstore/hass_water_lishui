@@ -1,0 +1,73 @@
+{
+  "title": "Lishui Water Fee",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Lishui Water",
+        "description": "Enter your water meter details to fetch bills.",
+        "data": {
+          "card_no": "Water meter number",
+          "year": "Billing year",
+          "token": "User token (optional)"
+        },
+        "data_description": {
+          "card_no": "The customer/meter number shown on your bill or in the WeChat mini-program",
+          "year": "Billing year to query, e.g. 2026",
+          "token": "Optional token from the WeChat mini-program; leave blank when not required"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Renew token",
+        "description": "The token for water meter {card_no} is invalid or has expired. Paste a fresh token to continue.",
+        "data": {
+          "token": "New user token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the Lishui water API",
+      "invalid_auth": "Token is invalid or expired",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This water meter is already configured",
+      "reauth_successful": "Reauthentication was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lishui Water options",
+        "data": {
+          "scan_interval": "Polling interval (hours)"
+        },
+        "data_description": {
+          "scan_interval": "How often to fetch bills; billing data changes monthly, 6h is plenty"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "latest_balance": {
+        "name": "Latest bill amount"
+      },
+      "latest_usage": {
+        "name": "Latest water usage"
+      },
+      "latest_bill_status": {
+        "name": "Latest bill status",
+        "state": {
+          "paid": "Paid",
+          "unpaid": "Unpaid"
+        }
+      },
+      "latest_meter_reading": {
+        "name": "Latest meter reading"
+      },
+      "latest_previous_meter_reading": {
+        "name": "Previous meter reading"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "hass_water_lishui",
+  "name": "Lishui Water Fee",
+  "codeowners": [
+    "@hassstore"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/hassstore/hass_water_lishui",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/hassstore/hass_water_lishui/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

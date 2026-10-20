@@ -1,0 +1,73 @@
+{
+  "title": "丽水水费",
+  "config": {
+    "step": {
+      "user": {
+        "title": "配置丽水水费",
+        "description": "请输入水表信息用于获取账单。",
+        "data": {
+          "card_no": "水表号",
+          "year": "计费年度",
+          "token": "用户 Token（可留空）"
+        },
+        "data_description": {
+          "card_no": "账单或微信小程序「丽水供排水」里显示的户号/表号",
+          "year": "要查询的计费年度，例如 2026",
+          "token": "微信小程序登录后的 Token；接口未要求时可留空"
+        }
+      },
+      "reauth_confirm": {
+        "title": "更新 Token",
+        "description": "水表 {card_no} 的 Token 无效或已过期，请粘贴新的 Token 后提交。",
+        "data": {
+          "token": "新的用户 Token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到丽水水费接口",
+      "invalid_auth": "Token 无效或已失效",
+      "unknown": "未知错误"
+    },
+    "abort": {
+      "already_configured": "该水表已配置",
+      "reauth_successful": "重新认证成功"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "丽水水费选项",
+        "data": {
+          "scan_interval": "轮询间隔（小时）"
+        },
+        "data_description": {
+          "scan_interval": "账单按月出账，默认 6 小时足够；范围 1–48 小时"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "latest_balance": {
+        "name": "最新水费金额"
+      },
+      "latest_usage": {
+        "name": "最新用水量"
+      },
+      "latest_bill_status": {
+        "name": "最新账单缴费状态",
+        "state": {
+          "paid": "已缴费",
+          "unpaid": "未缴费"
+        }
+      },
+      "latest_meter_reading": {
+        "name": "最新抄表读数"
+      },
+      "latest_previous_meter_reading": {
+        "name": "上期抄表读数"
+      }
+    }
+  }
+}
