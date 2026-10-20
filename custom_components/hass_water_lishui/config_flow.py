@@ -6,6 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import (
+    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
     OptionsFlow,
@@ -16,7 +17,9 @@ from homeassistant.helpers.selector import (
     NumberSelectorConfig,
     NumberSelectorMode,
 )
+from homeassistant.util import dt as dt_util
 
+from .client import LishuiWaterApiError, LishuiWaterAuthError
 from .const import (
     CONF_CARD_NO,
     CONF_SCAN_INTERVAL,
@@ -24,9 +27,10 @@ from .const import (
     CONF_YEAR,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_SCAN_INTERVAL,
+    MIN_SCAN_INTERVAL,
 )
 from .coordinator import async_validate_input
-from .client import LishuiWaterApiError, LishuiWaterAuthError
 
 
 def _user_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
@@ -34,15 +38,14 @@ def _user_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
     defaults = defaults or {}
     return vol.Schema(
         {
+            vol.Required(CONF_CARD_NO, default=defaults.get(CONF_CARD_NO, "")): str,
+            # The API is queried per billing year; default to the current one
+            # so the user only has to type the meter number.
             vol.Required(
-                CONF_CARD_NO, default=defaults.get(CONF_CARD_NO, "")
+                CONF_YEAR,
+                default=str(defaults.get(CONF_YEAR) or dt_util.now().year),
             ): str,
-            vol.Required(
-                CONF_YEAR, default=defaults.get(CONF_YEAR, "")
-            ): str,
-            vol.Optional(
-                CONF_TOKEN, default=defaults.get(CONF_TOKEN, "")
-            ): str,
+            vol.Optional(CONF_TOKEN, default=defaults.get(CONF_TOKEN, "")): str,
         }
     )
 
@@ -59,18 +62,23 @@ class HassWaterLishuiConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            data = {
+                CONF_CARD_NO: str(user_input[CONF_CARD_NO]).strip(),
+                CONF_YEAR: str(user_input[CONF_YEAR]).strip(),
+                CONF_TOKEN: str(user_input.get(CONF_TOKEN, "")).strip(),
+            }
             try:
-                info = await async_validate_input(self.hass, user_input)
+                info = await async_validate_input(self.hass, data)
             except LishuiWaterAuthError:
                 errors["base"] = "invalid_auth"
             except LishuiWaterApiError:
                 errors["base"] = "cannot_connect"
-            except Exception:
+            except Exception:  # noqa: BLE001 - surface anything else as unknown
                 errors["base"] = "unknown"
             else:
-                await self.async_set_unique_id(str(user_input[CONF_CARD_NO]))
+                await self.async_set_unique_id(data[CONF_CARD_NO])
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=info["title"], data=user_input)
+                return self.async_create_entry(title=info["title"], data=data)
 
         return self.async_show_form(
             step_id="user",
@@ -78,9 +86,7 @@ class HassWaterLishuiConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(
-        self, entry_data: dict[str, Any]
-    ) -> ConfigFlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
         """Handle reauthentication when the token expires."""
         return await self.async_step_reauth_confirm()
 
@@ -94,7 +100,7 @@ class HassWaterLishuiConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             new_data = {
                 **reauth_entry.data,
-                CONF_TOKEN: str(user_input.get(CONF_TOKEN, "")),
+                CONF_TOKEN: str(user_input.get(CONF_TOKEN, "")).strip(),
             }
             try:
                 await async_validate_input(self.hass, new_data)
@@ -102,12 +108,10 @@ class HassWaterLishuiConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_auth"
             except LishuiWaterApiError:
                 errors["base"] = "cannot_connect"
-            except Exception:
+            except Exception:  # noqa: BLE001 - surface anything else as unknown
                 errors["base"] = "unknown"
             else:
-                return self.async_update_reload_and_abort(
-                    reauth_entry, data=new_data
-                )
+                return self.async_update_reload_and_abort(reauth_entry, data=new_data)
 
         return self.async_show_form(
             step_id="reauth_confirm",
@@ -118,9 +122,7 @@ class HassWaterLishuiConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(
-        config_entry,
-    ) -> "LishuiWaterOptionsFlow":
+    def async_get_options_flow(config_entry: ConfigEntry) -> LishuiWaterOptionsFlow:
         """Return the options flow."""
         return LishuiWaterOptionsFlow()
 
@@ -135,10 +137,8 @@ class LishuiWaterOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
-        current_hours = (
-            self.config_entry.options.get(
-                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds() / 3600
-            )
+        current_hours = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL.total_seconds() / 3600
         )
 
         return self.async_show_form(
@@ -149,8 +149,8 @@ class LishuiWaterOptionsFlow(OptionsFlow):
                         CONF_SCAN_INTERVAL, default=float(current_hours)
                     ): NumberSelector(
                         NumberSelectorConfig(
-                            min=1,
-                            max=48,
+                            min=MIN_SCAN_INTERVAL.total_seconds() / 3600,
+                            max=MAX_SCAN_INTERVAL.total_seconds() / 3600,
                             step=0.5,
                             mode=NumberSelectorMode.BOX,
                             unit_of_measurement="h",

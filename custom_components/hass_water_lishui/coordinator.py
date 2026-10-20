@@ -80,8 +80,14 @@ class LishuiWaterCoordinator(DataUpdateCoordinator[LishuiWaterData]):
         if not items:
             raise UpdateFailed("No billing data returned")
 
+        # Guard against malformed records: a non-dict entry would break the
+        # sort below (and every sensor) for the whole update.
+        records = [item for item in items if isinstance(item, dict)]
+        if not records:
+            raise UpdateFailed("Billing data has an unexpected format")
+
         sorted_items = sorted(
-            items, key=lambda item: str(item.get("fareMonth", "")), reverse=True
+            records, key=lambda item: str(item.get("fareMonth", "")), reverse=True
         )
         return LishuiWaterData(
             latest=sorted_items[0],

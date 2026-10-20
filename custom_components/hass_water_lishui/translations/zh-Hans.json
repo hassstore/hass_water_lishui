@@ -12,7 +12,7 @@
         },
         "data_description": {
           "card_no": "账单或微信小程序「丽水供排水」里显示的户号/表号",
-          "year": "要查询的计费年度，例如 2026",
+          "year": "要查询的计费年度，例如 2026，默认当前年份",
           "token": "微信小程序登录后的 Token；接口未要求时可留空"
         }
       },
@@ -49,14 +49,17 @@
   },
   "entity": {
     "sensor": {
-      "latest_balance": {
+      "latest_bill_amount": {
         "name": "最新水费金额"
       },
       "latest_usage": {
         "name": "最新用水量"
       },
+      "account_balance": {
+        "name": "账户余额"
+      },
       "latest_bill_status": {
-        "name": "最新账单缴费状态",
+        "name": "账单缴费状态",
         "state": {
           "paid": "已缴费",
           "unpaid": "未缴费"

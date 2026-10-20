@@ -49,11 +49,14 @@
   },
   "entity": {
     "sensor": {
-      "latest_balance": {
+      "latest_bill_amount": {
         "name": "Latest bill amount"
       },
       "latest_usage": {
         "name": "Latest water usage"
+      },
+      "account_balance": {
+        "name": "Account balance"
       },
       "latest_bill_status": {
         "name": "Latest bill status",

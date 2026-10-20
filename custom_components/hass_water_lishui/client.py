@@ -105,11 +105,14 @@ class LishuiWaterClient:
         except ValueError as err:
             raise LishuiWaterApiError("Invalid JSON response") from err
 
+        if not isinstance(payload, dict):
+            raise LishuiWaterApiError("Unexpected response format")
+
         code = str(payload.get("code", ""))
         if code != "00":
-            # Never log the token or the full payload; the message alone is
+            # Never log the token or the whole payload; the message alone is
             # enough for users to report issues.
-            message = str(payload.get("message", "Unknown API error"))
+            message = str(payload.get("message") or "Unknown API error")
             if code in _AUTH_CODES or "token" in message.lower():
                 raise LishuiWaterAuthError(message)
             raise LishuiWaterApiError(f"API error code={code}: {message}")
