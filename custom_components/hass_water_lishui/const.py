@@ -17,9 +17,6 @@ DEFAULT_SCAN_INTERVAL: Final = timedelta(hours=6)
 MIN_SCAN_INTERVAL: Final = timedelta(hours=1)
 MAX_SCAN_INTERVAL: Final = timedelta(hours=48)
 
-DEFAULT_API_BASE: Final = "http://wx.lswater.cn"
-API_TIMEOUT: Final = 15
-
 ATTR_HISTORY_BILLS: Final = "history_bills"
 ATTR_IS_PAID: Final = "is_paid"
 ATTR_FARE_MONTH: Final = "fare_month"

@@ -16,7 +16,8 @@
 
 ## 要求
 
-- Home Assistant **2024.12** 或更新版本
+- Home Assistant **2025.8** 或更新版本（集成使用 `OptionsFlowWithReload`，
+  该 API 自 2025.8 起提供）
 - 丽水供排水的水表号（户号，见账单或微信小程序）
 - 无 PyPI 依赖，仅使用 HA 内置的 aiohttp 会话
 
@@ -60,7 +61,7 @@ Token 过期后集成会弹出「需要重新认证」卡片，点击后粘贴�
 
 | 传感器 | 单位 | 说明 |
 | --- | --- | --- |
-| 最新水费金额 | CNY | 最新一期账单金额（接口 `fareValue`），属性里附带最近 12 期历史账单（`history_bills`） |
+| 最新水费金额 | CNY | 最新一期账单金额（接口 `fareValue`），属性里附带最近 12 期历史账单（`history_bills`，实时可读但不写入 recorder） |
 | 最新用水量 | m³ | 本期用水量，由 `currDegree - lastDegree` 计算 |
 | 账户余额 | CNY | 账户余额（接口 `balance`，**默认禁用**，设备页可手动开启） |
 | 账单缴费状态 | — | `已缴费` / `未缴费`（接口 `billFlag == 0` 为已缴） |
@@ -76,6 +77,12 @@ Token 过期后集成会弹出「需要重新认证」卡片，点击后粘贴�
 - 用水量算出来为负（换表/清零）时返回 `unknown`，不污染长期统计。
 - `unavailable`：整轮轮询失败（接口不可达），下一轮自动恢复。
 - 缴费状态只在接口返回 `billFlag` 字段时才更新，不会用 0 冒充真实值。
+
+## 修改计费年度
+
+接口按**年度**返回账单，所以计费年度属于「连接设置」而非偏好：跨年后用
+**设置 → 集成 → Lishui Water Fee → ⋮ → 重新配置**，只改年度，条目、设备与
+实体（连同历史数据）都会保留。若新年度还没出账，会提示 `no_data`，过几天再试即可。
 
 ## 选项
 
@@ -105,8 +112,10 @@ Token 过期后集成会弹出「需要重新认证」卡片，点击后粘贴�
 | --- | --- |
 | `cannot_connect` | 检查 HA 能否访问 `wx.lswater.cn`（HTTP 80）；部分地区运营商拦截，需换 DNS 或代理 |
 | `invalid_auth` / 弹出重新认证 | Token 过期，粘贴新 Token；留空 Token 仍报错说明接口改为必须登录态 |
+| `no_data` | 该水表号 + 计费年度没有账单：核对水表号，或改选更早的年度 |
 | 金额字段为空 | 该接口对未登录请求不返回余额类字段，填入 Token 后重试 |
 | `already_configured` | 同一水表号已添加过；要换 Token 走「配置」或等待重认证提示 |
+| 需要把数据发给维护者 | 设备页 → ⋯ → **下载诊断信息**：Token 已脱敏，只含轮询状态与账单统计 |
 
 ## 安全须知
 
@@ -117,7 +126,10 @@ Token 过期后集成会弹出「需要重新认证」卡片，点击后粘贴�
 
 ## 开发与发布
 
-- `client.py` 仅依赖 aiohttp，可脱离 HA 直接用 `python3` 调试
+- 测试：`pip install pytest-homeassistant-custom-component && pytest`
+  （覆盖 config flow / reauth / reconfigure / options / 空数据语义 / 诊断脱敏）
+- `client.py` 只依赖 aiohttp 且**不 import homeassistant**，可按文件头示例用
+  importlib 单独加载调试
 - 推送 `vX.Y.Z` tag（与 `manifest.json` 版本一致）由
   [release.yml](https://github.com/hassstore/hass_water_lishui/blob/main/.github/workflows/release.yml)
   自动打包 `hass_water_lishui.zip` 并创建 Release

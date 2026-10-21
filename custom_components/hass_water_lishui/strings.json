@@ -22,11 +22,22 @@
         "data": {
           "token": "New user token"
         }
+      },
+      "reconfigure": {
+        "title": "Change billing year",
+        "description": "Update the billing year queried for water meter {card_no}. The API answers per year, so a new year may not have a bill yet.",
+        "data": {
+          "year": "Billing year"
+        },
+        "data_description": {
+          "year": "Billing year to query, e.g. 2027"
+        }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect to the Lishui water API",
       "invalid_auth": "Token is invalid or expired",
+      "no_data": "No bill was found for this meter number and billing year. Check both values, or select an earlier billing year.",
       "unknown": "Unexpected error"
     },
     "abort": {

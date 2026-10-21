@@ -22,11 +22,22 @@
         "data": {
           "token": "新的用户 Token"
         }
+      },
+      "reconfigure": {
+        "title": "修改计费年度",
+        "description": "更新水表 {card_no} 查询用的计费年度。接口按年度返回账单，新的年度可能还没出账。",
+        "data": {
+          "year": "计费年度"
+        },
+        "data_description": {
+          "year": "要查询的计费年度，例如 2027"
+        }
       }
     },
     "error": {
       "cannot_connect": "无法连接到丽水水费接口",
       "invalid_auth": "Token 无效或已失效",
+      "no_data": "该水表号与计费年度没有查到账单。请核对水表号和年度，或改选更早的计费年度。",
       "unknown": "未知错误"
     },
     "abort": {

@@ -1,14 +1,20 @@
 """HTTP client for the Lishui Water (丽水供排水) WeChat API.
 
-This module has no Home Assistant dependencies so it can be exercised
-standalone::
+This module imports nothing from Home Assistant, so it can be exercised
+standalone (load it by path, the package itself does need Home Assistant)::
 
-    import asyncio, aiohttp
-    from custom_components.hass_water_lishui.client import LishuiWaterClient
+    import asyncio, importlib.util, pathlib
+
+    import aiohttp
+
+    path = pathlib.Path("custom_components/hass_water_lishui/client.py")
+    spec = importlib.util.spec_from_file_location("lishui_client", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
 
     async def main() -> None:
         async with aiohttp.ClientSession() as session:
-            client = LishuiWaterClient(session, card_no="123456", year="2026")
+            client = module.LishuiWaterClient(session, card_no="123456", year="2026")
             print(await client.async_fetch_fares())
 
     asyncio.run(main())
@@ -21,7 +27,11 @@ from typing import Any
 
 from aiohttp import ClientError, ClientSession
 
-from .const import API_TIMEOUT, DEFAULT_API_BASE
+# Kept here (not in const.py) on purpose: const.py imports homeassistant.const,
+# and this module must stay importable without Home Assistant so the parsing
+# logic can be exercised standalone.
+DEFAULT_API_BASE = "http://wx.lswater.cn"
+API_TIMEOUT = 15
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +54,10 @@ class LishuiWaterApiError(Exception):
 
 class LishuiWaterAuthError(LishuiWaterApiError):
     """Token authentication related error."""
+
+
+class LishuiWaterNoDataError(LishuiWaterApiError):
+    """The API answered, but there is no billing record for this meter/year."""
 
 
 class LishuiWaterClient:

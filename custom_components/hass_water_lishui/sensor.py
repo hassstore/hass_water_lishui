@@ -28,6 +28,10 @@ from .const import (
 )
 from .coordinator import LishuiWaterCoordinator
 
+# Read-only platform: every entity reads the same coordinator snapshot, so there
+# is no reason to serialise updates with a semaphore.
+PARALLEL_UPDATES = 0
+
 # billFlag: 0 = paid, anything else = unpaid. Keys are translated.
 _BILL_STATES = ["paid", "unpaid"]
 
@@ -41,8 +45,9 @@ SENSORS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="latest_bill_amount",
         translation_key="latest_bill_amount",
-        # MONETARY only accepts state_class TOTAL, which HA derives from the
-        # device class; setting it by hand would be redundant.
+        # MONETARY only allows SensorStateClass.TOTAL. A bill amount is a
+        # per-period figure, so it is left without a state class on purpose:
+        # HA then shows it as a value instead of a running sum.
         device_class=SensorDeviceClass.MONETARY,
         native_unit_of_measurement="CNY",
         suggested_display_precision=2,
@@ -124,6 +129,11 @@ class LishuiWaterSensor(CoordinatorEntity[LishuiWaterCoordinator], SensorEntity)
     """Representation of a Lishui water sensor."""
 
     _attr_has_entity_name = True
+
+    # The bill history is a large, slowly changing blob and `updated_at` changes
+    # on every poll; neither belongs in the recorder database. Both stay
+    # available in the live state attributes.
+    _unrecorded_attributes = frozenset({ATTR_HISTORY_BILLS, "updated_at"})
 
     def __init__(
         self,

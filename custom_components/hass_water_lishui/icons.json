@@ -1,0 +1,22 @@
+{
+  "entity": {
+    "sensor": {
+      "account_balance": {
+        "default": "mdi:wallet"
+      },
+      "latest_bill_status": {
+        "default": "mdi:file-document-outline",
+        "state": {
+          "paid": "mdi:check-circle",
+          "unpaid": "mdi:alert-circle"
+        }
+      },
+      "latest_meter_reading": {
+        "default": "mdi:counter"
+      },
+      "latest_previous_meter_reading": {
+        "default": "mdi:history"
+      }
+    }
+  }
+}
